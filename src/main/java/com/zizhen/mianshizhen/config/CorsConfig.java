@@ -1,4 +1,4 @@
-package com.zizhen.mianshizhen.esdao.config;
+package com.zizhen.mianshizhen.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

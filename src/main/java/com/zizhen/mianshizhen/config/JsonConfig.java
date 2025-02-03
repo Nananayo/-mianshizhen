@@ -1,4 +1,4 @@
-package com.zizhen.mianshizhen.esdao.config;
+package com.zizhen.mianshizhen.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;

@@ -3,7 +3,7 @@ package com.zizhen.mianshizhen.manager;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
-import com.zizhen.mianshizhen.esdao.config.CosClientConfig;
+import com.zizhen.mianshizhen.config.CosClientConfig;
 import java.io.File;
 import javax.annotation.Resource;
 import org.springframework.stereotype.Component;

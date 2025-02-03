@@ -1,4 +1,4 @@
-package com.zizhen.mianshizhen.esdao.config;
+package com.zizhen.mianshizhen.config;
 
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;

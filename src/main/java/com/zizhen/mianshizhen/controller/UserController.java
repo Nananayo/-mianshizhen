@@ -6,7 +6,7 @@ import com.zizhen.mianshizhen.common.BaseResponse;
 import com.zizhen.mianshizhen.common.DeleteRequest;
 import com.zizhen.mianshizhen.common.ErrorCode;
 import com.zizhen.mianshizhen.common.ResultUtils;
-import com.zizhen.mianshizhen.esdao.config.WxOpenConfig;
+import com.zizhen.mianshizhen.config.WxOpenConfig;
 import com.zizhen.mianshizhen.constant.UserConstant;
 import com.zizhen.mianshizhen.exception.BusinessException;
 import com.zizhen.mianshizhen.exception.ThrowUtils;

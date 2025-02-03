@@ -1,4 +1,4 @@
-package com.zizhen.mianshizhen.esdao.config;
+package com.zizhen.mianshizhen.config;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
