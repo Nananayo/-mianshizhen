@@ -2,6 +2,10 @@ package com.zizhen.mianshizhen.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.zizhen.mianshizhen.model.entity.Question;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.Date;
+import java.util.List;
 
 /**
 * @author lenovo
@@ -10,6 +14,9 @@ import com.zizhen.mianshizhen.model.entity.Question;
 * @Entity generator.domain.Question
 */
 public interface QuestionMapper extends BaseMapper<Question> {
+
+    @Select("select * from question where updateTime >= #{minUpdateTime}")
+    List<Question> listQuestionWithDelete(Date minUpdateTime);
 
 }
 
