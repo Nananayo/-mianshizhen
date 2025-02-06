@@ -12,9 +12,7 @@ import com.zizhen.mianshizhen.common.ResultUtils;
 import com.zizhen.mianshizhen.constant.UserConstant;
 import com.zizhen.mianshizhen.exception.BusinessException;
 import com.zizhen.mianshizhen.exception.ThrowUtils;
-import com.zizhen.mianshizhen.model.dto.questionBackQuestion.QuestionBankQuestionAddRequest;
-import com.zizhen.mianshizhen.model.dto.questionBackQuestion.QuestionBankQuestionQueryRequest;
-import com.zizhen.mianshizhen.model.dto.questionBackQuestion.QuestionBankQuestionUpdateRequest;
+import com.zizhen.mianshizhen.model.dto.questionBackQuestion.*;
 import com.zizhen.mianshizhen.model.entity.QuestionBankQuestion;
 import com.zizhen.mianshizhen.model.entity.User;
 import com.zizhen.mianshizhen.model.vo.QuestionBankQuestionVO;
@@ -26,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 题库题目关联接口
@@ -214,5 +213,62 @@ public class QuestionBankQuestionController {
      * @param questionBankQuestionRemoveRequest
      * @return
      */
+    @PostMapping("/remove")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> removeQuestionBankQuestion(
+            @RequestBody QuestionBankQuestionRemoveRequest questionBankQuestionRemoveRequest
+    ) {
+        // 参数校验
+        ThrowUtils.throwIf(questionBankQuestionRemoveRequest == null, ErrorCode.PARAMS_ERROR);
+        Long questionBankId = questionBankQuestionRemoveRequest.getQuestionBankId();
+        Long questionId = questionBankQuestionRemoveRequest.getQuestionId();
+        ThrowUtils.throwIf(questionBankId == null || questionId == null, ErrorCode.PARAMS_ERROR);
+        // 构造查询
+        LambdaQueryWrapper<QuestionBankQuestion> lambdaQueryWrapper = Wrappers.lambdaQuery(QuestionBankQuestion.class)
+                .eq(QuestionBankQuestion::getQuestionBankId, questionBankId)
+                .eq(QuestionBankQuestion::getQuestionId, questionId);
+        boolean result = questionBankQuestionService.remove(lambdaQueryWrapper);
+        return ResultUtils.success(result);
+    }
 
+    /**
+     * 批量添加题目到题库（仅管理员可用）
+     *
+     * @param questionBankQuestionBatchAddRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/add/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> batchAddQuestionsToBank(
+            @RequestBody QuestionBankQuestionBatchAddRequest questionBankQuestionBatchAddRequest,
+            HttpServletRequest request
+    ) {
+        ThrowUtils.throwIf(questionBankQuestionBatchAddRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        Long questionBankId = questionBankQuestionBatchAddRequest.getQuestionBankId();
+        List<Long> questionIdList = questionBankQuestionBatchAddRequest.getQuestionIdList();
+        questionBankQuestionService.batchAddQuestionsToBank(questionIdList, questionBankId, loginUser);
+        return ResultUtils.success(true);
+    }
+
+    /**
+     * 批量从题库移除题目（仅管理员可用）
+     *
+     * @param questionBankQuestionBatchRemoveRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/remove/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> batchRemoveQuestionsFromBank(
+            @RequestBody QuestionBankQuestionBatchRemoveRequest questionBankQuestionBatchRemoveRequest,
+            HttpServletRequest request
+    ) {
+        ThrowUtils.throwIf(questionBankQuestionBatchRemoveRequest == null, ErrorCode.PARAMS_ERROR);
+        Long questionBankId = questionBankQuestionBatchRemoveRequest.getQuestionBankId();
+        List<Long> questionIdList = questionBankQuestionBatchRemoveRequest.getQuestionIdList();
+        questionBankQuestionService.batchRemoveQuestionsFromBank(questionIdList, questionBankId);
+        return ResultUtils.success(true);
+    }
 }

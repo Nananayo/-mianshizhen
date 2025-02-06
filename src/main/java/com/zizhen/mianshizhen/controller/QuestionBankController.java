@@ -2,6 +2,7 @@ package com.zizhen.mianshizhen.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
+import com.jd.platform.hotkey.client.callback.JdHotKeyStore;
 import com.zizhen.mianshizhen.annotation.AuthCheck;
 import com.zizhen.mianshizhen.common.BaseResponse;
 import com.zizhen.mianshizhen.common.DeleteRequest;
@@ -19,6 +20,7 @@ import com.zizhen.mianshizhen.model.entity.Question;
 import com.zizhen.mianshizhen.model.entity.QuestionBank;
 import com.zizhen.mianshizhen.model.entity.User;
 import com.zizhen.mianshizhen.model.vo.QuestionBankVO;
+import com.zizhen.mianshizhen.model.vo.QuestionVO;
 import com.zizhen.mianshizhen.service.QuestionBankService;
 import com.zizhen.mianshizhen.service.QuestionService;
 import com.zizhen.mianshizhen.service.UserService;
@@ -139,27 +141,48 @@ public class QuestionBankController {
      * @param questionBankQueryRequest
      * @return
      */
-//    @GetMapping("/get/vo")
-//    public BaseResponse<QuestionBankVO> getQuestionBankVOById(QuestionBankQueryRequest questionBankQueryRequest, HttpServletRequest request) {
-//        ThrowUtils.throwIf(questionBankQueryRequest == null, ErrorCode.PARAMS_ERROR);
-//        Long id = questionBankQueryRequest.getId();
-//        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
-//        // 查询数据库
-//        QuestionBank questionBank = questionBankService.getById(id);
-//        ThrowUtils.throwIf(questionBank == null, ErrorCode.NOT_FOUND_ERROR);
-//        // 查询题库封装类
-//        QuestionBankVO questionBankVO = questionBankService.getQuestionBankVO(questionBank, request);
-//        // 是否要关联查询题库下的题目列表
-//        boolean needQueryQuestionList = questionBankQueryRequest.isNeedQueryQuestionList();
-//        if (needQueryQuestionList) {
-//            QuestionQueryRequest questionQueryRequest = new QuestionQueryRequest();
-//            questionQueryRequest.setQuestionBankId(id);
-//            Page<Question> questionPage = questionService.listQuestionByPage(questionQueryRequest);
-//            questionBankVO.setQuestionPage(questionPage);
-//        }
-//        // 获取封装类
-//        return ResultUtils.success(questionBankVO);
-//    }
+    @GetMapping("/get/vo")
+    public BaseResponse<QuestionBankVO> getQuestionBankVOById(QuestionBankQueryRequest questionBankQueryRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(questionBankQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        Long id = questionBankQueryRequest.getId();
+        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+
+        // 生成 key
+        String key = "bank_detail_" + id;
+        // 如果是热 key
+        if (JdHotKeyStore.isHotKey(key)) {
+            // 从本地缓存中获取缓存值
+            Object cachedQuestionBankVO = JdHotKeyStore.get(key);
+            if (cachedQuestionBankVO != null) {
+                // 如果缓存中有值，直接返回缓存的值
+                return ResultUtils.success((QuestionBankVO) cachedQuestionBankVO);
+            }
+        }
+
+        // 查询数据库
+        QuestionBank questionBank = questionBankService.getById(id);
+        ThrowUtils.throwIf(questionBank == null, ErrorCode.NOT_FOUND_ERROR);
+        // 查询题库封装类
+        QuestionBankVO questionBankVO = questionBankService.getQuestionBankVO(questionBank, request);
+        // 是否要关联查询题库下的题目列表
+        boolean needQueryQuestionList = questionBankQueryRequest.isNeedQueryQuestionList();
+        if (needQueryQuestionList) {
+            QuestionQueryRequest questionQueryRequest = new QuestionQueryRequest();
+            questionQueryRequest.setQuestionBankId(id);
+            // 可以按需支持更多的题目搜索参数，比如分页
+            questionQueryRequest.setPageSize(questionBankQueryRequest.getPageSize());
+            questionQueryRequest.setCurrent(questionBankQueryRequest.getCurrent());
+            Page<Question> questionPage = questionService.listQuestionByPage(questionQueryRequest);
+            Page<QuestionVO> questionVOPage = questionService.getQuestionVOPage(questionPage, request);
+            questionBankVO.setQuestionPage(questionVOPage);
+        }
+
+        // 设置本地缓存（如果不是热 key，这个方法不会设置缓存）
+        JdHotKeyStore.smartSet(key, questionBankVO);
+
+        // 获取封装类
+        return ResultUtils.success(questionBankVO);
+    }
 
     /**
      * 分页获取题库列表（仅管理员可用）
